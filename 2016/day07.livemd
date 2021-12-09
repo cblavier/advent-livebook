@@ -9,8 +9,6 @@ puzzle =
   |> File.read!()
   |> String.split("\n")
   |> Enum.slice(0..-2)
-
-:ok
 ```
 
 ## Part 1
@@ -61,13 +59,27 @@ For example:
 __How many IPs__ in your puzzle input support SSL?
 
 ```elixir
-["zazbz[bzb]cdb"]
-|> Enum.filter(fn ip ->
-  matches = Regex.scan(~r/\[\w*(\w)(\w)\1\w*\]/, ip)
-  stripped = String.replace(ip, ~r/\[\w*\]/, "")
+puzzle
+|> Enum.filter(fn entry ->
+  babs =
+    Regex.scan(~r/\[(\w+)\]/, entry, capture: :all_but_first)
+    |> List.flatten()
+    |> Enum.flat_map(fn s ->
+      s
+      |> String.graphemes()
+      |> Enum.chunk_every(3, 1, leftover: :discard)
+      |> Enum.filter(fn
+        [a, b, a] when a != b -> true
+        _ -> false
+      end)
+    end)
 
-  Enum.any?(matches, fn [_, a, b] ->
-    a != b && String.contains?(stripped, "#{b}#{a}#{b}")
+  Regex.scan(~r/(?:^|\])([a-z]+)(?:$|\[)/, entry, capture: :all_but_first)
+  |> List.flatten()
+  |> Enum.any?(fn s ->
+    Enum.any?(babs, fn [b, a, b] ->
+      String.contains?(s, "#{a}#{b}#{a}")
+    end)
   end)
 end)
 |> Enum.count()

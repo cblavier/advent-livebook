@@ -1,0 +1,524 @@
+<!-- livebook:{"persist_outputs":true} -->
+
+# 2021 / Day 8: Seven Segment Search
+
+## Puzzle
+
+```elixir
+puzzle =
+  "./puzzles/day08.txt"
+  |> Path.expand(__DIR__)
+  |> File.read!()
+  |> String.trim()
+  |> String.split("\n")
+  |> Enum.map(fn line ->
+    [indices, output] = String.split(line, " | ")
+
+    indices =
+      indices
+      |> String.split(" ")
+      |> Enum.map(fn s ->
+        s |> String.graphemes() |> Enum.sort() |> Enum.join()
+      end)
+
+    output =
+      output
+      |> String.split(" ")
+      |> Enum.map(fn s ->
+        s |> String.graphemes() |> Enum.sort() |> Enum.join()
+      end)
+
+    [indices, output]
+  end)
+```
+
+```output
+[
+  [
+    ["acefg", "abcef", "abcdef", "eg", "abcefg", "abdefg", "efg", "acdfg", "bceg", "abcdefg"],
+    ["abcdefg", "acefg", "acdfg", "bceg"]
+  ],
+  [
+    ["adeg", "acd", "abcdfg", "acdefg", "bcdefg", "cdefg", "abcef", "ad", "abcdefg", "acdef"],
+    ["cdefg", "abcdfg", "cdefg", "acdefg"]
+  ],
+  [
+    ["acdefg", "abe", "be", "abdfg", "acdef", "abdef", "abcdef", "abcdefg", "bcef", "abcdeg"],
+    ["be", "abdef", "abe", "acdef"]
+  ],
+  [
+    ["abcdefg", "defg", "acdfg", "acdeg", "abceg", "abcdef", "ade", "de", "abcdfg", "acdefg"],
+    ["de", "abcdef", "acdefg", "acdfg"]
+  ],
+  [
+    ["abcdefg", "bc", "abcdeg", "abcdg", "bceg", "abcdef", "abdfg", "acdeg", "acdefg", "bcd"],
+    ["acdefg", "bceg", "acdeg", "acdefg"]
+  ],
+  [
+    ["abcdefg", "abefg", "adefg", "abdefg", "abcefg", "acdfg", "de", "abde", "deg", "bcdefg"],
+    ["abefg", "de", "abcefg", "de"]
+  ],
+  [
+    ["abcdef", "abdfg", "abcdefg", "aceg", "bcg", "bcdefg", "abcfg", "abcefg", "cg", "abcef"],
+    ["bcdefg", "abcef", "abcefg", "abdfg"]
+  ],
+  [
+    ["acdeg", "ace", "ac", "abcdefg", "abcg", "abcdeg", "abcdef", "abdefg", "cdefg", "abdeg"],
+    ["abcdefg", "cdefg", "abcdeg", "abdefg"]
+  ],
+  [
+    ["bcefg", "cdg", "acde", "adefg", "cd", "cdefg", "abcdfg", "acdefg", "abcdefg", "abdefg"],
+    ["cdefg", "cdefg", "abcdfg", "cd"]
+  ],
+  [
+    ["abdeg", "bcdef", "bcdefg", "ceg", "cg", "bcdeg", "abcdefg", "bcfg", "acdefg", "abcdef"],
+    ["abcdefg", "bcdef", "ceg", "abdeg"]
+  ],
+  [
+    ["aefg", "bcdefg", "abcdg", "abdefg", "bdefg", "abcdef", "abcdefg", "abe", "abdeg", "ae"],
+    ["bcdefg", "aefg", "abdefg", "abcdg"]
+  ],
+  [
+    ["bde", "abdefg", "acdef", "abcdefg", "abcd", "bcefg", "bcdef", "abcdef", "bd", "acdefg"],
+    ["abdefg", "abdefg", "bcdef", "abcd"]
+  ],
+  [
+    ["abcdefg", "ag", "abcdef", "abdefg", "abcefg", "adfg", "abdeg", "abdef", "abg", "bcdeg"],
+    ["adfg", "abcdef", "abg", "abcefg"]
+  ],
+  [
+    ["abefg", "adefg", "bceg", "abcdef", "abcefg", "abcef", "abg", "abcdefg", "bg", "abcdfg"],
+    ["bg", "abcef", "abefg", "abcdef"]
+  ],
+  [
+    ["abdef", "abcdefg", "abcfg", "eg", "abcefg", "beg", "aceg", "abefg", "abcdfg", "bcdefg"],
+    ["beg", "bcdefg", "abcdfg", "abdef"]
+  ],
+  [
+    ["abcde", "abdefg", "dg", "abefg", "abcdefg", "defg", "abcdfg", "bdg", "abdeg", "abcefg"],
+    ["dg", "abcdfg", "defg", "abdefg"]
+  ],
+  [
+    ["abdfg", "abcdefg", "acdefg", "abf", "abcg", "abcdfg", "acdfg", "ab", "abcdef", "bdefg"],
+    ["acdfg", "abf", "acdfg", "abcg"]
+  ],
+  [
+    ["abef", "abcdg", "bcdef", "abcdef", "abcdefg", "bcdefg", "abcdf", "af", "acdefg", "adf"],
+    ["abcdf", "abcdf", "bcdefg", "abcdg"]
+  ],
+  [
+    ["bcdefg", "ac", "acdefg", "abcdefg", "abce", "abcdef", "bcdef", "abcdf", "acd", "abdfg"],
+    ["ac", "abcdf", "acdefg", "abcdef"]
+  ],
+  [
+    ["abdf", "abcdg", "bcdefg", "acdefg", "abcdfg", "abcdefg", "ad", "abceg", "acd", "bcdfg"],
+    ["bcdefg", "bcdfg", "bcdfg", "abcdfg"]
+  ],
+  [
+    ["abcefg", "abdeg", "abcdefg", "abg", "abdefg", "acdefg", "bg", "bdfg", "adefg", "abcde"],
+    ["abdeg", "acdefg", "adefg", "abdefg"]
+  ],
+  [
+    ["defg", "acdef", "eg", "abcdef", "acdeg", "abcefg", "acdefg", "ceg", "abcdefg", "abcdg"],
+    ["abcdg", "abcefg", "acdeg", "abcdefg"]
+  ],
+  [
+    ["abcde", "acdeg", "ab", "abc", "bcdef", "abcdefg", "acdefg", "abdg", "abcdeg", "abcefg"],
+    ["bcdef", "ab", "abcefg", "abcefg"]
+  ],
+  [
+    ["abcdefg", "cef", "bcdeg", "abcfg", "defg", "bcefg", "bcdefg", "abcdef", "abcdeg", "ef"],
+    ["bcdefg", "bcdefg", "defg", "defg"]
+  ],
+  [
+    ["abdef", "bfg", "abdefg", "abefg", "abcdef", "acefg", "abdg", "bcdefg", "bg", "abcdefg"],
+    ["acefg", "abcdef", "bcdefg", "abdg"]
+  ],
+  [
+    ["abceg", "bf", "abcdefg", "befg", "bcf", "abcef", "abcdfg", "abcefg", "acdef", "abcdeg"],
+    ["befg", "abceg", "abceg", "befg"]
+  ],
+  [
+    ["abceg", "cefg", "abcdefg", "abcef", "abcefg", "abcdeg", "bef", "ef", "abcdf", "abdefg"],
+    ["ef", "abcdf", "abcdeg", "abceg"]
+  ],
+  [
+    ["beg", "abcef", "abefg", "abcdefg", "abcg", "bg", "adefg", "bcdefg", "abcdef", "abcefg"],
+    ["bcdefg", "abcdefg", "beg", "abefg"]
+  ],
+  [
+    ["adg", "abcde", "acdeg", "cdefg", "abcdef", "abdefg", "abcdeg", "abcdefg", "ag", "abcg"],
+    ["abcdef", "abcdef", "acdeg", "adg"]
+  ],
+  [
+    ["cf", "bcdefg", "cef", "abdef", "abcdef", "abdefg", "acdeg", "abcdefg", "acdef", "abcf"],
+    ["abcdefg", "bcdefg", "cf", "abcdef"]
+  ],
+  [
+    ["bdefg", "abcdfg", "acde", "cdg", "acdefg", "abcefg", "cdefg", "acefg", "abcdefg", "cd"],
+    ["bdefg", "cdefg", "abcdefg", "acdefg"]
+  ],
+  [
+    ["abcdefg", "abdeg", "bdg", "abdf", "abefg", "bd", "abdefg", "acdeg", "abcefg", "bcdefg"],
+    ["acdeg", "abdeg", "abdf", "abdeg"]
+  ],
+  [
+    ["abceg", "acdefg", "abcdefg", "cd", "cde", "abcdef", "bcdf", "abcde", "abdef", "abdefg"],
+    ["abdef", "abceg", "abdef", "acdefg"]
+  ],
+  [
+    ["abcefg", "acdfg", "abcdefg", "abcdfg", "acdefg", "ab", "bcdeg", "abdf", "abcdg", "abg"],
+    ["abg", "abcdg", "abg", "ab"]
+  ],
+  [
+    ["abcdefg", "bcef", "abdefg", "cf", "acdefg", "acf", "abcfg", "abefg", "abcdg", "abcefg"],
+    ["abcdg", "abcdg", "abcfg", "cf"]
+  ],
+  [
+    ["ade", "abcef", "abcdeg", "acdfg", "abcdef", "bdef", "abcefg", "acdef", "abcdefg", "de"],
+    ["abcdefg", "bdef", "abcdef", "abcdefg"]
+  ],
+  [
+    ["abcf", "acefg", "cdefg", "abdefg", "abcdefg", "ac", "abcdeg", "abefg", "abcefg", "ace"],
+    ["abcdeg", "abdefg", "ace", "acefg"]
+  ],
+  [
+    ["bcdefg", "abcdfg", "ag", "abcefg", "abcdefg", "abdfg", "bcdfg", "abdef", "acdg", "afg"],
+    ["abdfg", "abcdefg", "abcefg", "afg"]
+  ],
+  [
+    ["abd", "acdef", "bdeg", "abcdeg", "abcdefg", "abcdfg", "abceg", "bd", "abcde", "abcefg"],
+    ["acdef", "abcdfg", "abcdefg", "bdeg"]
+  ],
+  [
+    ["beg", "bcfg", "acdefg", "bg", "abefg", "abcefg", "abdef", "abcdeg", "acefg", ...],
+    ["abcdefg", "abcefg", "abefg", "acefg"]
+  ],
+  [
+    ["acdef", "acg", "acdefg", "abcdef", "abcdefg", "ag", "acefg", "adeg", ...],
+    ["acdefg", "acefg", "abcdfg", "bcefg"]
+  ],
+  [
+    ["bdefg", "bcdfg", "bcef", "acdfg", "bcdefg", "abdefg", "bcg", ...],
+    ["abcdeg", "abdefg", "bdefg", "acdfg"]
+  ],
+  [["abcdfg", "acde", "bdefg", "acdefg", "adefg", "acefg", ...], ["bdefg", "acefg", "adg", "adefg"]],
+  [["abdefg", "abcdefg", "acdfg", "af", "acef", ...], ["abdefg", "abcdefg", "acdefg", "acdeg"]],
+  [["abcdefg", "adefg", "bcefg", "abcg", ...], ["abefg", "abe", "bcdefg", ...]],
+  [["bcdefg", "abcdef", "abcdefg", ...], ["abcdefg", "bdeg", ...]],
+  [["abcefg", "acdef", ...], ["abcde", ...]],
+  [["adefg", ...], [...]],
+  [[...], ...],
+  [...],
+  ...
+]
+```
+
+## Part 1
+
+You barely reach the safety of the cave when the whale smashes into the cave mouth, collapsing it. Sensors indicate another exit to this cave at a much greater depth, so you have no choice but to press on.
+
+As your submarine slowly makes its way through the cave system, you notice that the four-digit seven-segment displays in your submarine are malfunctioning; they must have been damaged during the escape. You'll be in a lot of trouble without them, so you'd better figure out what's wrong.
+
+Each digit of a seven-segment display is rendered by turning on or off any of seven segments named `a` through `g`:
+
+```
+  0:      1:      2:      3:      4:
+ aaaa    ....    aaaa    aaaa    ....
+b    c  .    c  .    c  .    c  b    c
+b    c  .    c  .    c  .    c  b    c
+ ....    ....    dddd    dddd    dddd
+e    f  .    f  e    .  .    f  .    f
+e    f  .    f  e    .  .    f  .    f
+ gggg    ....    gggg    gggg    ....
+
+  5:      6:      7:      8:      9:
+ aaaa    aaaa    aaaa    aaaa    aaaa
+b    .  b    .  .    c  b    c  b    c
+b    .  b    .  .    c  b    c  b    c
+ dddd    dddd    ....    dddd    dddd
+.    f  e    f  .    f  e    f  .    f
+.    f  e    f  .    f  e    f  .    f
+ gggg    gggg    ....    gggg    gggg
+```
+
+So, to render a `1`, only segments `c` and `f` would be turned on; the rest would be off. To render a `7`, only segments `a`, `c`, and `f` would be turned on.
+
+The problem is that the signals which control the segments have been mixed up on each display. The submarine is still trying to display numbers by producing output on signal wires a through g, but those wires are connected to segments randomly. Worse, the wire/segment connections are mixed up separately for each four-digit display! (All of the digits within a display use the same connections, though.)
+
+So, you might know that only signal wires `b` and `g` are turned on, but that doesn't mean segments b and g are turned on: the only digit that uses two segments is 1, so it must mean segments c and f are meant to be on. With just that information, you still can't tell which wire (`b`/`g`) goes to which segment (`c`/`f`). For that, you'll need to collect more information.
+
+For each display, you watch the changing signals for a while, make a note of all ten unique signal patterns you see, and then write down a single four digit output value (your puzzle input). Using the signal patterns, you should be able to work out which pattern corresponds to which digit.
+
+For example, here is what you might see in a single entry in your notes:
+
+```
+acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab |
+cdfeb fcadb cdfeb cdbaf
+```
+
+(The entry is wrapped here to two lines so it fits; in your notes, it will all be on a single line.)
+
+Each entry consists of ten unique signal patterns, a `|` delimiter, and finally the four digit output value. Within an entry, the same wire/segment connections are used (but you don't know what the connections actually are). The unique signal patterns correspond to the ten different ways the submarine tries to render a digit using the current wire/segment connections. Because 7 is the only digit that uses three segments, dab in the above example means that to render a 7, signal lines d, a, and b are on. Because 4 is the only digit that uses four segments, eafb means that to render a 4, signal lines e, a, f, and b are on.
+
+Using this information, you should be able to work out which combination of signal wires corresponds to each of the ten digits. Then, you can decode the four digit output value. Unfortunately, in the above example, all of the digits in the output value (`cdfeb fcadb cdfeb cdbaf`) use five segments and are more difficult to deduce.
+
+For now, focus on the easy digits. Consider this larger example:
+
+```
+be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb |
+fdgacbe cefdb cefbgd gcbe
+edbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec |
+fcgedb cgb dgebacf gc
+fgaebd cg bdaec gdafb agbcfd gdcbef bgcad gfac gcb cdgabef |
+cg cg fdcagb cbg
+fbegcd cbd adcefb dageb afcb bc aefdc ecdab fgdeca fcdbega |
+efabcd cedba gadfec cb
+aecbfdg fbg gf bafeg dbefa fcge gcbea fcaegb dgceab fcbdga |
+gecf egdcabf bgf bfgea
+fgeab ca afcebg bdacfeg cfaedg gcfdb baec bfadeg bafgc acf |
+gebdcfa ecba ca fadegcb
+dbcfg fgd bdegcaf fgec aegbdf ecdfab fbedc dacgb gdcebf gf |
+cefg dcbef fcge gbcadfe
+bdfegc cbegaf gecbf dfcage bdacg ed bedf ced adcbefg gebcd |
+ed bcgafe cdgba cbgef
+egadfb cdbfeg cegd fecab cgb gbdefca cg fgcdab egfdb bfceg |
+gbdfcae bgc cg cgb
+gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc |
+fgae cfgab fg bagce
+```
+
+Because the digits `1`, `4`, `7`, and `8` each use a unique number of segments, you should be able to tell which combinations of signals correspond to those digits. Counting only digits in the output values (the part after | on each line), in the above example, there are 26 instances of digits that use a unique number of segments (highlighted above).
+
+In the output values, how many times do digits `1`, `4`, `7` or `8` appear?
+
+```elixir
+puzzle
+|> Enum.map(fn [_, output] ->
+  Enum.count(output, &(String.length(&1) in [2, 3, 4, 7]))
+end)
+|> Enum.sum()
+```
+
+```output
+278
+```
+
+## Part 2
+
+Through a little deduction, you should now be able to determine the remaining digits. Consider again the first example above:
+
+```
+acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab |
+cdfeb fcadb cdfeb cdbaf
+```
+
+After some careful analysis, the mapping between signal wires and segments only make sense in the following configuration:
+
+```
+ dddd
+e    a
+e    a
+ ffff
+g    b
+g    b
+ cccc
+```
+
+So, the unique signal patterns would correspond to the following digits:
+
+* `acedgfb`: `8`
+* `cdfbe`: `5`
+* `gcdfa`: `2`
+* `fbcad`: `3`
+* `dab`: `7`
+* `cefabd`: `9`
+* `cdfgeb`: `6`
+* `eafb`: `4`
+* `cagedb`: `0`
+* `ab`: `1`
+
+Then, the four digits of the output value can be decoded:
+
+* `cdfeb`: `5`
+* `fcadb`: `3`
+* `cdfeb`: `5`
+* `cdbaf`: `3`
+
+Therefore, the output value for this entry is `5353`.
+
+Following this same process for each entry in the second, larger example above, the output value of each entry can be determined:
+
+* `fdgacbe cefdb cefbgd gcbe`: `8394`
+* `fcgedb cgb dgebacf gc`: `9781`
+* `cg cg fdcagb cbg`: `1197`
+* `efabcd cedba gadfec cb`: `9361`
+* `gecf egdcabf bgf bfgea`: `4873`
+* `gebdcfa ecba ca fadegcb`: `8418`
+* `cefg dcbef fcge gbcadfe`: `4548`
+* `ed bcgafe cdgba cbgef`: `1625`
+* `gbdfcae bgc cg cgb`: `8717`
+* `fgae cfgab fg bagce`: `4315`
+
+Adding all of the output values in this larger example produces `61229`.
+
+For each entry, determine all of the wire/segment connections and decode the four-digit output values. What do you get if you add up all of the output values?
+
+```elixir
+defmodule SegmentGuesser do
+  def guess_cf(dictionnary, indices) do
+    [c, f] = indices |> Enum.find(&(String.length(&1) == 2)) |> String.graphemes()
+    dictionnary |> Map.put("c", c) |> Map.put("f", f)
+  end
+
+  def guess_a(dictionnary, indices) do
+    one = indices |> Enum.find(&(String.length(&1) == 2)) |> String.graphemes()
+    seven = indices |> Enum.find(&(String.length(&1) == 3)) |> String.graphemes()
+    [a] = seven -- one
+    Map.put(dictionnary, "a", a)
+  end
+
+  def guess_bd(dictionnary, indices) do
+    [c, f] = indices |> Enum.find(&(String.length(&1) == 2)) |> String.graphemes()
+    [b?, c?, d?, f?] = indices |> Enum.find(&(String.length(&1) == 4)) |> String.graphemes()
+    [b, d] = [b?, c?, d?, f?] -- [c, f]
+    dictionnary |> Map.put("b", b) |> Map.put("d", d)
+  end
+
+  def guess_one(dictionnary, indices) do
+    one = Enum.find(indices, &(String.length(&1) == 2))
+    Map.put(dictionnary, one, 1)
+  end
+
+  def guess_two(dict, indices) do
+    twos? = indices |> Enum.filter(&(String.length(&1) == 5)) |> Enum.map(&String.graphemes/1)
+
+    {b, c, d, f} =
+      {Map.get(dict, "b"), Map.get(dict, "c"), Map.get(dict, "d"), Map.get(dict, "f")}
+
+    two =
+      Enum.find(twos?, fn letters ->
+        Enum.any?([b, d], fn letter -> letter not in letters end) and
+          Enum.any?([c, f], fn letter -> letter not in letters end)
+      end)
+
+    Map.put(dict, Enum.join(two), 2)
+  end
+
+  def guess_three(dict, indices) do
+    threes? = indices |> Enum.filter(&(String.length(&1) == 5)) |> Enum.map(&String.graphemes/1)
+    {c, f} = {Map.get(dict, "c"), Map.get(dict, "f")}
+
+    three =
+      Enum.find(threes?, fn letters ->
+        Enum.all?([c, f], fn letter -> letter in letters end)
+      end)
+
+    Map.put(dict, Enum.join(three), 3)
+  end
+
+  def guess_four(dictionnary, indices) do
+    four = Enum.find(indices, &(String.length(&1) == 4))
+    Map.put(dictionnary, four, 4)
+  end
+
+  def guess_five(dict, indices) do
+    maybe_fives =
+      indices |> Enum.filter(&(String.length(&1) == 5)) |> Enum.map(&String.graphemes/1)
+
+    {b, d} = {Map.get(dict, "b"), Map.get(dict, "d")}
+
+    five =
+      Enum.find(maybe_fives, fn letters ->
+        Enum.all?([b, d], fn letter -> letter in letters end)
+      end)
+
+    Map.put(dict, Enum.join(five), 5)
+  end
+
+  def guess_six(dict, indices) do
+    maybe_six = indices |> Enum.filter(&(String.length(&1) == 6)) |> Enum.map(&String.graphemes/1)
+
+    {b, c, d, f} =
+      {Map.get(dict, "b"), Map.get(dict, "c"), Map.get(dict, "d"), Map.get(dict, "f")}
+
+    six =
+      Enum.find(maybe_six, fn letters ->
+        Enum.all?([b, d], fn letter -> letter in letters end) and
+          Enum.any?([c, f], fn letter -> letter not in letters end)
+      end)
+
+    Map.put(dict, Enum.join(six), 6)
+  end
+
+  def guess_seven(dictionnary, indices) do
+    seven = Enum.find(indices, &(String.length(&1) == 3))
+    Map.put(dictionnary, seven, 7)
+  end
+
+  def guess_eight(dictionnary, indices) do
+    eight = Enum.find(indices, &(String.length(&1) == 7))
+    Map.put(dictionnary, eight, 8)
+  end
+
+  def guess_nine(dict, indices) do
+    nines? = indices |> Enum.filter(&(String.length(&1) == 6)) |> Enum.map(&String.graphemes/1)
+
+    {b, c, d, f} =
+      {Map.get(dict, "b"), Map.get(dict, "c"), Map.get(dict, "d"), Map.get(dict, "f")}
+
+    nine =
+      Enum.find(nines?, fn letters ->
+        Enum.all?([b, d], fn letter -> letter in letters end) and
+          Enum.all?([c, f], fn letter -> letter in letters end)
+      end)
+
+    Map.put(dict, Enum.join(nine), 9)
+  end
+
+  def guess_zero(dict, indices) do
+    zeros? = indices |> Enum.filter(&(String.length(&1) == 6)) |> Enum.map(&String.graphemes/1)
+
+    {b, c, d, f} =
+      {Map.get(dict, "b"), Map.get(dict, "c"), Map.get(dict, "d"), Map.get(dict, "f")}
+
+    zero =
+      Enum.find(zeros?, fn letters ->
+        Enum.any?([b, d], fn letter -> letter not in letters end) and
+          Enum.all?([c, f], fn letter -> letter in letters end)
+      end)
+
+    Map.put(dict, Enum.join(zero), 0)
+  end
+
+  def translate(dictionnary, output) do
+    Enum.reduce(output, 0, fn digit, acc ->
+      acc * 10 + Map.get(dictionnary, digit)
+    end)
+  end
+end
+
+puzzle
+|> Enum.map(fn [indices, output] ->
+  %{}
+  |> SegmentGuesser.guess_cf(indices)
+  |> SegmentGuesser.guess_bd(indices)
+  |> SegmentGuesser.guess_a(indices)
+  |> SegmentGuesser.guess_one(indices)
+  |> SegmentGuesser.guess_two(indices)
+  |> SegmentGuesser.guess_three(indices)
+  |> SegmentGuesser.guess_four(indices)
+  |> SegmentGuesser.guess_five(indices)
+  |> SegmentGuesser.guess_six(indices)
+  |> SegmentGuesser.guess_seven(indices)
+  |> SegmentGuesser.guess_eight(indices)
+  |> SegmentGuesser.guess_nine(indices)
+  |> SegmentGuesser.guess_zero(indices)
+  |> SegmentGuesser.translate(output)
+end)
+|> Enum.sum()
+```
+
+```output
+986179
+```

@@ -106,17 +106,13 @@ initial_state =
     Enum.frequencies(puzzle)
   )
 
-Enum.reduce(1..256, initial_state, fn _i, state ->
-  state
-  |> Map.put(0, state[1])
-  |> Map.put(1, state[2])
-  |> Map.put(2, state[3])
-  |> Map.put(3, state[4])
-  |> Map.put(4, state[5])
-  |> Map.put(5, state[6])
-  |> Map.put(6, state[7] + state[0])
-  |> Map.put(7, state[8])
-  |> Map.put(8, state[0])
+Enum.reduce(1..256, initial_state, fn _, state ->
+  acc_state =
+    Enum.reduce(0..8, state, fn i, acc_state ->
+      Map.put(acc_state, i, state[rem(i + 1, 9)])
+    end)
+
+  Map.update(acc_state, 6, 0, &(&1 + state[0]))
 end)
 |> Map.values()
 |> Enum.sum()

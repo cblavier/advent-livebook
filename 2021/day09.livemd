@@ -1,0 +1,218 @@
+<!-- livebook:{"persist_outputs":true} -->
+
+# 2021 / Day 9: Smoke Basin
+
+## Puzzle
+
+```elixir
+puzzle =
+  "./puzzles/day09.txt"
+  |> Path.expand(__DIR__)
+  |> File.read!()
+  |> String.trim()
+  |> String.split("\n")
+  |> Enum.with_index()
+  |> Enum.reduce(%{}, fn {line, y}, map ->
+    line
+    |> String.graphemes()
+    |> Enum.map(&String.to_integer/1)
+    |> Enum.with_index()
+    |> Enum.reduce(map, fn {char, x}, map ->
+      Map.put(map, {x, y}, char)
+    end)
+  end)
+```
+
+```output
+%{
+  {76, 13} => 5,
+  {37, 47} => 4,
+  {65, 63} => 8,
+  {38, 2} => 8,
+  {1, 26} => 8,
+  {83, 76} => 6,
+  {32, 15} => 8,
+  {89, 14} => 8,
+  {35, 30} => 7,
+  {37, 53} => 4,
+  {4, 5} => 3,
+  {8, 50} => 6,
+  {78, 98} => 2,
+  {95, 56} => 9,
+  {74, 12} => 8,
+  {11, 39} => 9,
+  {65, 43} => 8,
+  {22, 38} => 5,
+  {14, 86} => 7,
+  {20, 41} => 8,
+  {29, 25} => 2,
+  {86, 10} => 8,
+  {83, 36} => 3,
+  {29, 26} => 7,
+  {47, 27} => 5,
+  {4, 81} => 5,
+  {31, 42} => 5,
+  {9, 34} => 9,
+  {90, 0} => 8,
+  {67, 98} => 7,
+  {13, 85} => 5,
+  {63, 81} => 9,
+  {82, 60} => 9,
+  {47, 38} => 7,
+  {15, 92} => 6,
+  {58, 58} => 9,
+  {20, 3} => 9,
+  {61, 95} => 4,
+  {23, 67} => 9,
+  {78, 75} => 3,
+  {79, 17} => 5,
+  {75, 0} => 4,
+  {16, 73} => 3,
+  {76, 2} => 7,
+  {58, 84} => 8,
+  {58, 33} => 9,
+  {47, 44} => 9,
+  {54, 31} => 4,
+  {13, ...} => 6,
+  {...} => 9,
+  ...
+}
+```
+
+## Part 1
+
+These caves seem to be lava tubes. Parts are even still volcanically active; small hydrothermal vents release smoke into the caves that slowly settles like rain.
+
+If you can model how the smoke flows through the caves, you might be able to avoid it and be that much safer. The submarine generates a heightmap of the floor of the nearby caves for you (your puzzle input).
+
+Smoke flows to the lowest point of the area it's in. For example, consider the following heightmap:
+
+```
+2199943210
+3987894921
+9856789892
+8767896789
+9899965678
+```
+
+Each number corresponds to the height of a particular location, where 9 is the highest and 0 is the lowest a location can be.
+
+Your first goal is to find the low points - the locations that are lower than any of its adjacent locations. Most locations have four adjacent locations (up, down, left, and right); locations on the edge or corner of the map have three or two adjacent locations, respectively. (Diagonal locations do not count as adjacent.)
+
+In the above example, there are four low points, all highlighted: two are in the first row (a `1` and a `0`), one is in the third row (a `5`), and one is in the bottom row (also a `5`). All other locations on the heightmap have some lower adjacent location, and so are not low points.
+
+The risk level of a low point is `1` plus its height. In the above example, the risk levels of the low points are `2`, `1`, `6`, and `6`. The sum of the risk levels of all low points in the heightmap is therefore `15`.
+
+Find all of the low points on your heightmap. What is the sum of the risk levels of all low points on your heightmap?
+
+```elixir
+Enum.reduce(puzzle, 0, fn {{x, y}, current_height}, acc ->
+  low_point? =
+    Enum.all?([{x + 1, y}, {x - 1, y}, {x, y + 1}, {x, y - 1}], fn {x, y} ->
+      Map.get(puzzle, {x, y}, 10) > current_height
+    end)
+
+  if low_point?, do: acc + current_height + 1, else: acc
+end)
+```
+
+```output
+554
+```
+
+## Part 2
+
+Next, you need to find the largest basins so you know what areas are most important to avoid.
+
+A basin is all locations that eventually flow downward to a single low point. Therefore, every low point has a basin, although some basins are very small. Locations of height 9 do not count as being in any basin, and all other locations will always be part of exactly one basin.
+
+The size of a basin is the number of locations within the basin, including the low point. The example above has four basins.
+
+The top-left basin, size `3`:
+
+```
+2199943210
+3987894921
+9856789892
+8767896789
+9899965678
+```
+
+The top-right basin, size `9`:
+
+```
+2199943210
+3987894921
+9856789892
+8767896789
+9899965678
+```
+
+The middle basin, size `14`:
+
+```
+2199943210
+3987894921
+9856789892
+8767896789
+9899965678
+```
+
+The bottom-right basin, size `9`:
+
+```
+2199943210
+3987894921
+9856789892
+8767896789
+9899965678
+```
+
+Find the three largest basins and multiply their sizes together. In the above example, this is `9 * 14 * 9 = 1134`.
+
+What do you get if you multiply together the sizes of the three largest basins?
+
+```elixir
+defmodule BasinFinder do
+  def find(puzzle) do
+    puzzle
+    |> lows()
+    |> Enum.map(&explore(puzzle, &1))
+    |> Enum.map(&Enum.count/1)
+    |> Enum.sort(:desc)
+    |> Enum.take(3)
+    |> Enum.product()
+  end
+
+  defp explore(puzzle, current_pos = {x, y}, from_height \\ -1) do
+    current_height = Map.get(puzzle, current_pos, 0)
+
+    if current_height != 9 && current_height > from_height do
+      neighbours = [{x + 1, y}, {x - 1, y}, {x, y + 1}, {x, y - 1}]
+
+      Enum.reduce(neighbours, MapSet.new([current_pos]), fn pos, acc ->
+        puzzle |> explore(pos, current_height) |> MapSet.union(acc)
+      end)
+    else
+      MapSet.new()
+    end
+  end
+
+  defp lows(puzzle) do
+    Enum.reduce(puzzle, [], fn {{x, y}, current_height}, acc ->
+      low_point? =
+        Enum.all?([{x + 1, y}, {x - 1, y}, {x, y + 1}, {x, y - 1}], fn {x, y} ->
+          Map.get(puzzle, {x, y}, 10) > current_height
+        end)
+
+      if low_point?, do: [{x, y} | acc], else: acc
+    end)
+  end
+end
+
+BasinFinder.find(puzzle)
+```
+
+```output
+1017792
+```
