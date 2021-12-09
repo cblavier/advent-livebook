@@ -30,6 +30,8 @@ puzzle =
 
     [indices, output]
   end)
+
+:ok
 ```
 
 ```output

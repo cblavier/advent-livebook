@@ -10,6 +10,8 @@ puzzle =
   |> String.split("\n")
   |> Enum.slice(0..-2)
   |> Enum.map(&String.to_integer/1)
+
+:ok
 ```
 
 ## Part1

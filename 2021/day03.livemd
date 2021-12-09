@@ -9,6 +9,8 @@ puzzle =
   |> File.read!()
   |> String.trim()
   |> String.split("\n")
+
+:ok
 ```
 
 ## Part 1
@@ -145,6 +147,8 @@ defmodule BinaryDiagnostic do
     Enum.filter(puzzle, &(String.at(&1, position) == bit))
   end
 end
+
+:ok
 ```
 
 ```elixir
