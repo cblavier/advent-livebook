@@ -5,6 +5,8 @@
 ```elixir
 puzzle = "./puzzles/day02.txt" |> Path.expand(__DIR__) |> File.read!()
 instructions = puzzle |> String.split("\n") |> Enum.slice(0..-2)
+
+:ok
 ```
 
 ## Part1

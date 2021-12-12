@@ -9,6 +9,8 @@ puzzle =
   |> File.read!()
   |> String.split("\n")
   |> Enum.slice(0..-2)
+
+:ok
 ```
 
 ## Part1

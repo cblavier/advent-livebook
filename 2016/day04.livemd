@@ -13,6 +13,8 @@ rooms =
     captures = Regex.named_captures(~r/(?<name>.*)-(?<id>\d+)\[(?<checksum>.*)\]/, room)
     {captures["name"], String.to_integer(captures["id"]), captures["checksum"]}
   end)
+
+:ok
 ```
 
 ## Part1
