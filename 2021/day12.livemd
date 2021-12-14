@@ -135,15 +135,13 @@ __How many paths through this cave system are there that visit small caves at mo
 
 ```elixir
 defmodule PathFinder do
-  def traverse(graph, from, path \\ []) do
+  def traverse(graph, from, path \\ [])
+  def traverse(_graph, "end", path), do: [Enum.reverse(["end" | path])]
+
+  def traverse(graph, from, path) do
     edges = edges_from(graph, from)
     graph = if lowercase?(from), do: remove_paths_to(graph, from), else: graph
-    path = [from | path]
-
-    Enum.flat_map(edges, fn
-      "end" -> [Enum.reverse(["end" | path])]
-      edge -> traverse(graph, edge, path)
-    end)
+    Enum.flat_map(edges, &traverse(graph, &1, [from | path]))
   end
 
   defp edges_from(graph, from) do
@@ -224,7 +222,10 @@ __Given these new rules, how many paths through this cave system are there?__
 
 ```elixir
 defmodule PathFinder do
-  def traverse(puzzle, from, path \\ [], revisited? \\ false) do
+  def traverse(puzzle, from, path \\ [], revisited? \\ false)
+  def traverse(_puzzle, "end", path, _revisited?), do: [Enum.reverse(["end" | path])]
+
+  def traverse(puzzle, from, path, revisited?) do
     revisited?
     |> revisit_options()
     |> Enum.flat_map(fn revisit ->
@@ -235,17 +236,12 @@ defmodule PathFinder do
           do: remove_paths_to(puzzle, from, revisit),
           else: puzzle
 
-      path = [from | path]
-
-      Enum.flat_map(edges, fn
-        "end" -> [Enum.reverse(["end" | path])]
-        edge -> traverse(puzzle, edge, path, revisit || revisited?)
-      end)
+      Enum.flat_map(edges, &traverse(puzzle, &1, [from | path], revisit || revisited?))
     end)
   end
 
-  def revisit_options(false), do: [true, false]
-  def revisit_options(true), do: [false]
+  defp revisit_options(false), do: [true, false]
+  defp revisit_options(true), do: [false]
 
   defp edges_from(puzzle, edge) do
     Enum.map(puzzle, fn
